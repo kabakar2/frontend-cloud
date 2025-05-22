@@ -1,0 +1,10 @@
+{
+  "name": "frontend-inscription",
+  "version": "1.0.0",
+  "description": "Frontend statique pour inscription",
+  "scripts": {
+    "build": "echo 'Build complete - static files ready'",
+    "start": "echo 'Static files ready'"
+  },
+  "devDependencies": {}
+}
