@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription Simple</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        input[type="text"] {
+            width: 80%;
+            padding: 12px;
+            margin: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .names-list {
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .name-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .message {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Inscription Simple</h1>
+        
+        <div>
+            <input type="text" id="nameInput" placeholder="Entrez votre nom" maxlength="100">
+            <br>
+            <button onclick="addName()">Ajouter</button>
+            <button onclick="loadNames()">Actualiser la liste</button>
+        </div>
+        
+        <div id="message"></div>
+        
+        <div class="names-list">
+            <h3>Liste des personnes inscrites :</h3>
+            <div id="namesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Remplace cette URL par l'URL de ton App Service
+        const API_URL = 'esgi-app-backend-add8bvg9hzh0cgek.northeurope-01.azurewebsites.net';
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        async function addName() {
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                showMessage('Veuillez entrer un nom', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/names`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: name })
+                });
+                
+                if (response.ok) {
+                    nameInput.value = '';
+                    showMessage('Nom ajouté avec succès !', 'success');
+                    loadNames();
+                } else {
+                    throw new Error('Erreur lors de l\'ajout');
+                }
+            } catch (error) {
+                showMessage('Erreur: ' + error.message, 'error');
+            }
+        }
+        
+        async function loadNames() {
+            try {
+                const response = await fetch(`${API_URL}/api/names`);
+                const names = await response.json();
+                
+                const namesList = document.getElementById('namesList');
+                if (names.length === 0) {
+                    namesList.innerHTML = '<p>Aucune personne inscrite pour le moment.</p>';
+                } else {
+                    namesList.innerHTML = names.map(person => 
+                        `<div class="name-item">${person.name} (ajouté le ${new Date(person.created_at).toLocaleDateString('fr-FR')})</div>`
+                    ).join('');
+                }
+            } catch (error) {
+                showMessage('Erreur lors du chargement des noms', 'error');
+            }
+        }
+        
+        // Charger les noms au démarrage
+        loadNames();
+        
+        // Permettre d'ajouter un nom en appuyant sur Entrée
+        document.getElementById('nameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addName();
+            }
+        });
+    </script>
+</body>
+</html>
